@@ -77,4 +77,14 @@ sleep 5  # Wait for Ollama to start
 ollama pull llama3.2:3b
 ollama pull moondream
 
+echo "Starting Python backend..."
+cd agent-backend
+if [[ "$OS" == "windows" ]]; then
+    source venv/Scripts/activate
+else
+    source venv/bin/activate
+fi
+nohup python run.py > backend.log 2>&1 &
+cd ..
+
 echo "Setup complete! Run 'npm run tauri dev' to start the app."

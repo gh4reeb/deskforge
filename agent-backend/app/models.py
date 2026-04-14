@@ -1,5 +1,6 @@
 from pydantic import BaseModel
+from typing import List, Optional
 
 class AgentState(BaseModel):
-    messages: list
-    screen_base64: str | None = None
+    messages: List[str]
+    screen_base64: Optional[str] = None

@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
-  "productName": "deskforge",
+  "productName": "DeskForge",
   "version": "0.1.0",
   "identifier": "com.deskforge.app",
   "build": {
@@ -14,8 +14,8 @@
     "targets": "all",
     "createUpdaterBundle": false,
     "category": "Productivity",
-    "shortDescription": "",
-    "longDescription": "",
+    "shortDescription": "AI Desktop Agent",
+    "longDescription": "Local AI agent for desktop automation",
     "copyright": "",
     "deb": {
       "depends": []
@@ -35,9 +35,21 @@
       "sidecar": {
         "python-backend": {
           "cmd": "python",
-          "args": ["agent-backend/run.py"]
+          "args": ["../agent-backend/run.py"]
         }
       }
     }
-  }
+  },
+  "security": {
+    "csp": null
+  },
+  "windows": [
+    {
+      "title": "DeskForge",
+      "width": 800,
+      "height": 600,
+      "resizable": true,
+      "fullscreen": false
+    }
+  ]
 }

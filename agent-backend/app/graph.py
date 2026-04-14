@@ -26,11 +26,13 @@ def executor_node(state: AgentState):
     if "screenshot" in plan.lower():
         result += " " + take_screenshot()
     if "click" in plan.lower():
-        # Parse coordinates, default 100,100
-        result += " " + mouse_click(100, 100)
+        result += " " + mouse_click(300, 300)
     if "type" in plan.lower():
-        # Parse text, default "hello"
-        result += " " + type_text("hello")
+        result += " " + type_text("Hello World")
+    if "read" in plan.lower():
+        result += " " + read_file("example.txt")
+    if "write" in plan.lower():
+        result += " " + write_file("output.txt", "Sample content")
     state.messages.append(result)
     return state
 

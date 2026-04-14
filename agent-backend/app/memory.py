@@ -2,7 +2,7 @@ import chromadb
 
 client = chromadb.PersistentClient(path="./chroma_db")
 
-collection = client.get_or_create_collection("agent_memory")
+collection = client.get_or_create_collection("deskforge_memory")
 
 def store_memory(key: str, value: str):
     collection.add(documents=[value], ids=[key])
