@@ -1,6 +1,7 @@
 from langgraph.graph import StateGraph, START, END
 from langchain_ollama import ChatOllama
 from .models import AgentState
+from .main import take_screenshot, mouse_click, type_text, read_file, write_file
 
 try:
     llm = ChatOllama(model="llama3.2:3b", temperature=0.3)
@@ -9,35 +10,40 @@ except:
     llm_available = False
 
 def planner_node(state: AgentState):
-    # Plan the task
+    task = state.messages[0]
     if llm_available:
-        prompt = f"Plan how to execute: {state.messages[-1]}"
+        prompt = f"Plan how to execute: {task}. Available tools: take_screenshot, mouse_click, type_text, read_file, write_file."
         response = llm.invoke(prompt)
         result = response.content
     else:
-        result = f"Mock plan for: {state.messages[-1]}"
+        result = f"Plan for: {task}"
     state.messages.append(result)
     return state
 
 def executor_node(state: AgentState):
-    # Execute the plan
+    plan = state.messages[-1]
     if llm_available:
-        prompt = f"Execute based on plan: {state.messages}"
+        prompt = f"Execute based on plan: {plan}. Use tools if needed."
         response = llm.invoke(prompt)
         result = response.content
+        # Simulate tool call
+        if "screenshot" in result.lower():
+            result += " " + take_screenshot()
+        elif "click" in result.lower():
+            result += " " + mouse_click(100, 100)  # Example
     else:
-        result = f"Mock execution for: {state.messages}"
+        result = f"Execute: {plan}"
     state.messages.append(result)
     return state
 
 def reviewer_node(state: AgentState):
-    # Review the execution
+    execution = state.messages[-1]
     if llm_available:
-        prompt = f"Review the result: {state.messages}"
+        prompt = f"Review the result: {execution}"
         response = llm.invoke(prompt)
         result = response.content
     else:
-        result = f"Mock review for: {state.messages}"
+        result = f"Review: {execution}"
     state.messages.append(result)
     return state
 

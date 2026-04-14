@@ -1,27 +1,27 @@
 version: '3.8'
 
 services:
-
   ollama:
-
-    image: ollama/ollama
-
+    image: ollama/ollama:latest
     ports:
-
       - "11434:11434"
-
     volumes:
-
       - ollama_data:/root/.ollama
+    restart: unless-stopped
+    environment:
+      - OLLAMA_HOST=0.0.0.0
 
-  chromadb:
-
-    image: chromadb/chroma
-
+  chroma:
+    image: chromadb/chroma:latest
     ports:
-
       - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    restart: unless-stopped
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
 
 volumes:
-
   ollama_data:
+  chroma_data:

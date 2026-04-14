@@ -1,17 +1,20 @@
-use std::process::Command;
 use tauri::command;
+use reqwest;
+use serde_json::json;
 
 #[command]
-pub fn run_agent(prompt: String) -> Result<String, String> {
-    let output = Command::new("python3")
-        .arg("../agent-backend/app/main.py")
-        .arg(prompt)
-        .output()
-        .map_err(|e| format!("Failed to run python: {}", e))?;
+pub async fn run_agent(task: String) -> Result<String, String> {
+    let client = reqwest::Client::new();
+    let res = client.post("http://127.0.0.1:8001/run-agent")
+        .json(&json!({"task": task}))
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {}", e))?;
 
-    if output.status.success() {
-        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    if res.status().is_success() {
+        let body: serde_json::Value = res.json().await.map_err(|e| format!("JSON parse failed: {}", e))?;
+        Ok(serde_json::to_string(&body).unwrap())
     } else {
-        Err(String::from_utf8_lossy(&output.stderr).to_string())
+        Err(format!("HTTP error: {}", res.status()))
     }
 }

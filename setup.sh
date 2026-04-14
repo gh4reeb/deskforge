@@ -4,18 +4,53 @@ set -e
 
 echo "Setting up DeskForge AI Desktop Agent..."
 
+# Detect OS
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    OS="linux"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    OS="macos"
+elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    OS="windows"
+else
+    echo "Unsupported OS: $OSTYPE"
+    exit 1
+fi
+
+echo "Detected OS: $OS"
+
 # Install Rust if not present
 if ! command -v cargo &> /dev/null; then
     echo "Installing Rust..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source ~/.cargo/env
+    export PATH="$HOME/.cargo/bin:$PATH"
 fi
 
 # Install Node.js if not present
 if ! command -v node &> /dev/null; then
     echo "Installing Node.js..."
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt-get install -y nodejs
+    if [[ "$OS" == "linux" ]]; then
+        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+    elif [[ "$OS" == "macos" ]]; then
+        brew install node@18
+    elif [[ "$OS" == "windows" ]]; then
+        # Assume WSL, use apt
+        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+    fi
+fi
+
+# Install Ollama if not present
+if ! command -v ollama &> /dev/null; then
+    echo "Installing Ollama..."
+    if [[ "$OS" == "linux" ]]; then
+        curl -fsSL https://ollama.ai/install.sh | sh
+    elif [[ "$OS" == "macos" ]]; then
+        brew install ollama
+    elif [[ "$OS" == "windows" ]]; then
+        echo "Please install Ollama manually on Windows: https://ollama.ai/download"
+        exit 1
+    fi
 fi
 
 # Install dependencies
@@ -25,18 +60,21 @@ npm install
 echo "Setting up Python backend..."
 cd agent-backend
 python3 -m venv venv
-source venv/bin/activate
+if [[ "$OS" == "windows" ]]; then
+    source venv/Scripts/activate
+else
+    source venv/bin/activate
+fi
 pip install -r requirements.txt
 cd ..
 
 # Start services
-echo "Starting Ollama and ChromaDB..."
+echo "Starting Ollama and Chroma..."
 docker-compose up -d
 
 echo "Pulling Ollama models..."
-# Assume ollama is running
-# ollama pull llama3.2:3b
-# ollama pull moondream
+sleep 5  # Wait for Ollama to start
+ollama pull llama3.2:3b
+ollama pull moondream
 
-echo "Building and running the app..."
-npm run tauri dev
+echo "Setup complete! Run 'npm run tauri dev' to start the app."
