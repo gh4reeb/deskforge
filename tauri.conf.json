@@ -1,0 +1,43 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "productName": "deskforge",
+  "version": "0.1.0",
+  "identifier": "com.deskforge.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:5173",
+    "distDir": "../dist"
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterBundle": false,
+    "category": "Productivity",
+    "shortDescription": "",
+    "longDescription": "",
+    "copyright": "",
+    "deb": {
+      "depends": []
+    },
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": ""
+    },
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    }
+  },
+  "plugins": {
+    "shell": {
+      "sidecar": {
+        "python-backend": {
+          "cmd": "python",
+          "args": ["agent-backend/run.py"]
+        }
+      }
+    }
+  }
+}
