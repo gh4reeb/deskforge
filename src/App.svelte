@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { invoke } from '@tauri-apps/api/tauri'
+  import { invoke } from '@tauri-apps/api/core'
   let prompt = ''
   let response = ''
   async function runAgent() {

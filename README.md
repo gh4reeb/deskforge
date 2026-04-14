@@ -2,6 +2,16 @@
 
 Transform your desktop into an intelligent assistant powered by local LLMs and computer control.
 
+## 🚀 One-Click Setup
+
+Get started instantly with our automated setup script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/gh4reeb/deskforge/main/setup.sh | bash
+```
+
+This will install all dependencies (Rust, Node.js, Python packages), start local services, and launch the app. No manual configuration needed!
+
 ## Features
 
 - **Local AI**: Run Llama-3.2 3B and Moondream2 locally with Ollama
@@ -10,6 +20,7 @@ Transform your desktop into an intelligent assistant powered by local LLMs and c
 - **Computer Control**: PyAutoGUI for desktop automation
 - **Modern UI**: Svelte 5 + Shadcn-svelte + Tailwind
 - **Native App**: Tauri 2 for 5-8 MB native feel
+- **Self-Learning**: Automatically learns from your interactions to improve assistance
 
 ## Quick Start
 
