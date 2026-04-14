@@ -4,10 +4,17 @@ Transform your desktop into an intelligent assistant powered by local LLMs and c
 
 ## 🚀 One-Click Setup
 
-Get started instantly with our automated setup script:
+Get started instantly with our automated setup scripts:
 
+**Linux/macOS:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/gh4reeb/deskforge/main/setup.sh | bash
+```
+
+**Windows (PowerShell as Admin):**
+```powershell
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/gh4reeb/deskforge/main/setup.ps1" -OutFile "setup.ps1"
+.\setup.ps1
 ```
 
 This will install all dependencies (Rust, Node.js, Python packages), start local services, and launch the app. No manual configuration needed!
