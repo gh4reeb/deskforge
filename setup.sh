@@ -53,6 +53,17 @@ if ! command -v ollama &> /dev/null; then
     fi
 fi
 
+# Install additional tools
+echo "Do you want to install network scanning tools (nmap)? (y/n)"
+read -r install_nmap
+if [[ "$install_nmap" == "y" ]]; then
+    if [[ "$OS" == "linux" ]]; then
+        sudo apt-get install -y nmap
+    elif [[ "$OS" == "macos" ]]; then
+        brew install nmap
+    fi
+fi
+
 # Install dependencies
 echo "Installing frontend dependencies..."
 npm install

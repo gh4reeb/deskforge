@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, START, END
 from langchain_ollama import ChatOllama
 from .models import AgentState
-from .main import take_screenshot, mouse_click, type_text, read_file, write_file
+from .main import take_screenshot, mouse_click, type_text, read_file, write_file, browse_web
 
 try:
     llm = ChatOllama(model="llama3.2:3b", temperature=0.3)
@@ -33,6 +33,8 @@ def executor_node(state: AgentState):
         result += " " + read_file("example.txt")
     if "write" in plan.lower():
         result += " " + write_file("output.txt", "Sample content")
+    if "browse" in plan.lower():
+        result += " " + browse_web("https://example.com")
     state.messages.append(result)
     return state
 

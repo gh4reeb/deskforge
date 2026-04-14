@@ -3,10 +3,10 @@ use reqwest;
 use serde_json::json;
 
 #[command]
-pub async fn run_agent(task: String) -> Result<String, String> {
+pub async fn run_agent(task: String, persona: String) -> Result<String, String> {
     let client = reqwest::Client::new();
     let res = client.post("http://127.0.0.1:8001/run-agent")
-        .json(&json!({"task": task}))
+        .json(&json!({"task": task, "persona": persona}))
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;

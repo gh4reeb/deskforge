@@ -43,6 +43,12 @@
   "security": {
     "csp": null
   },
+  "shortcuts": [
+    {
+      "shortcut": "CmdOrCtrl+Shift+S",
+      "description": "Stop Agent"
+    }
+  ],
   "windows": [
     {
       "title": "DeskForge",

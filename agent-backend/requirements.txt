@@ -17,3 +17,5 @@ pyautogui
 pillow
 
 ollama
+
+requests

@@ -14,8 +14,9 @@ graph = create_graph()
 
 class TaskRequest(BaseModel):
     task: str
+    persona: str = "general"
 
-ALLOWED_TOOLS = ["take_screenshot", "mouse_click", "type_text", "read_file", "write_file"]
+ALLOWED_TOOLS = ["take_screenshot", "mouse_click", "type_text", "read_file", "write_file", "browse_web"]
 FORBIDDEN_PATHS = ["/home", "/etc", "/usr", "/var", "/root", "/boot", "/sys", "/proc", "/dev", "C:\\Users", "C:\\Windows", "C:\\System32"]
 
 def check_security(tool_name, **kwargs):
@@ -83,13 +84,25 @@ def write_file(path: str, content: str):
     except:
         return "Write failed"
 
+def browse_web(url: str):
+    allowed, msg = check_security("browse_web", url=url)
+    if not allowed:
+        return msg
+    try:
+        import requests
+        response = requests.get(url, timeout=10)
+        return f"Browsed {url}: {response.text[:500]}..."
+    except:
+        return "Browse failed"
+
 @app.get("/")
 def read_root():
     return {"status": "DeskForge backend running", "version": "0.1.0"}
 
 @app.post("/run-agent")
 async def run_agent(request: TaskRequest):
-    initial_state = AgentState(messages=[request.task])
+    persona = getattr(request, 'persona', 'general')
+    initial_state = AgentState(messages=[f"Persona: {persona}. Task: {request.task}"])
     result = graph.invoke(initial_state)
     response = {"result": result.messages[-1], "screen": take_screenshot()}
     store_memory(request.task, response["result"])

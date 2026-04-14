@@ -2,10 +2,11 @@
   import { invoke } from '@tauri-apps/api/core'
   let prompt = ''
   let messages: {task: string, result: string, screen: string}[] = []
+  let persona = 'general'
 
   async function runAgent() {
     try {
-      const result = await invoke('run_agent', { task: prompt })
+      const result = await invoke('run_agent', { task: prompt, persona })
       const response = JSON.parse(result as string)
       messages = [...messages, {task: prompt, result: response.result, screen: response.screen}]
       prompt = ''
@@ -17,6 +18,11 @@
 
 <main>
   <h1>DeskForge AI Agent</h1>
+  <select bind:value={persona}>
+    <option value="general">General Assistant</option>
+    <option value="developer">Senior Software Developer</option>
+    <option value="network">Network Scanner</option>
+  </select>
   <div class="chat">
     {#each messages as msg}
       <div class="message">
