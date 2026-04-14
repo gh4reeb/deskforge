@@ -21,6 +21,14 @@ This will install all dependencies (Rust, Node.js, Python packages), start local
 - **Modern UI**: Svelte 5 + Shadcn-svelte + Tailwind
 - **Native App**: Tauri 2 for 5-8 MB native feel
 - **Self-Learning**: Automatically learns from your interactions to improve assistance
+- **Security**: Built-in boundaries and permission prompts
+
+## Example Tasks
+
+- "Take a screenshot and click at 100,100"
+- "Type 'Hello World' in the active window"
+- "Read the content of my notes.txt file"
+- "Write a summary to summary.txt"
 
 ## Quick Start
 
@@ -70,6 +78,8 @@ This will install all dependencies (Rust, Node.js, Python packages), start local
 - **AI**: Ollama for local inference
 - **Storage**: ChromaDB + SQLite
 
-## Contributing
+## 📚 Documentation
 
-See CONTRIBUTING.md
+- [Architecture](docs/architecture.md)
+- [API Reference](docs/api.md)
+- [Development Guide](docs/development.md)

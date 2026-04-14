@@ -22,17 +22,15 @@ def planner_node(state: AgentState):
 
 def executor_node(state: AgentState):
     plan = state.messages[-1]
-    if llm_available:
-        prompt = f"Execute based on plan: {plan}. Use tools if needed."
-        response = llm.invoke(prompt)
-        result = response.content
-        # Simulate tool call
-        if "screenshot" in result.lower():
-            result += " " + take_screenshot()
-        elif "click" in result.lower():
-            result += " " + mouse_click(100, 100)  # Example
-    else:
-        result = f"Execute: {plan}"
+    result = plan
+    if "screenshot" in plan.lower():
+        result += " " + take_screenshot()
+    if "click" in plan.lower():
+        # Parse coordinates, default 100,100
+        result += " " + mouse_click(100, 100)
+    if "type" in plan.lower():
+        # Parse text, default "hello"
+        result += " " + type_text("hello")
     state.messages.append(result)
     return state
 
