@@ -83,8 +83,14 @@ if ! command -v ollama &> /dev/null; then
 fi
 
 # Install additional tools
-echo "Do you want to install network scanning tools (nmap)? (y/n)"
-read -r install_nmap
+install_nmap="n"
+if [[ -t 0 ]]; then
+    echo "Do you want to install network scanning tools (nmap)? (y/n)"
+    if ! read -r install_nmap < /dev/tty; then
+        install_nmap="n"
+    fi
+fi
+
 if [[ "$install_nmap" == "y" ]]; then
     if [[ "$OS" == "linux" ]]; then
         sudo apt-get install -y nmap
