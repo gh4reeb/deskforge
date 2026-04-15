@@ -1,8 +1,37 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" >/dev/null 2>&1 && pwd || true)"
+CURRENT_DIR="$(pwd)"
+ROOT_DIR=""
 
 echo "Setting up DeskForge AI Desktop Agent..."
+
+# If the installer is being run directly from the repo, use that path.
+if [[ -f "$CURRENT_DIR/package.json" ]]; then
+    ROOT_DIR="$CURRENT_DIR"
+elif [[ -n "$SCRIPT_DIR" && -f "$SCRIPT_DIR/package.json" ]]; then
+    ROOT_DIR="$SCRIPT_DIR"
+elif [[ -f "$CURRENT_DIR/deskforge/package.json" ]]; then
+    ROOT_DIR="$CURRENT_DIR/deskforge"
+fi
+
+if [[ -z "$ROOT_DIR" ]]; then
+    if ! command -v git &> /dev/null; then
+        echo "Error: No DeskForge repository found in the current directory and git is not installed."
+        exit 1
+    fi
+
+    INSTALL_DIR="$CURRENT_DIR/deskforge"
+    echo "No repository files found in $CURRENT_DIR."
+    echo "Cloning DeskForge into $INSTALL_DIR ..."
+    git clone https://github.com/gh4reeb/deskforge.git "$INSTALL_DIR"
+    ROOT_DIR="$INSTALL_DIR"
+fi
+
+cd "$ROOT_DIR"
+echo "Using repository root: $ROOT_DIR"
 
 # Detect OS
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then

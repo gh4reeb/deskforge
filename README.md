@@ -17,6 +17,8 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/gh4reeb/deskforge/main
 .\setup.ps1
 ```
 
+If the repository is not already present in the current directory, the installer will clone DeskForge automatically into a `deskforge` subfolder and continue from there.
+
 This will install all dependencies (Rust, Node.js, Python packages), start local services, and launch the app. No manual configuration needed!
 
 ## Features

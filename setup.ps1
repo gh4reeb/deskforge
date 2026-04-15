@@ -8,6 +8,30 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     exit 1
 }
 
+$CurrentDir = Get-Location
+$RepoRoot = $null
+if (Test-Path "$CurrentDir\package.json") {
+    $RepoRoot = $CurrentDir
+} elseif (Test-Path "$CurrentDir\deskforge\package.json") {
+    $RepoRoot = Join-Path $CurrentDir "deskforge"
+}
+
+if (-not $RepoRoot) {
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        Write-Host "Error: No DeskForge repository found in the current directory and git is not installed."
+        exit 1
+    }
+
+    $InstallDir = Join-Path $CurrentDir "deskforge"
+    Write-Host "No repository files found in $CurrentDir."
+    Write-Host "Cloning DeskForge into $InstallDir ..."
+    git clone https://github.com/gh4reeb/deskforge.git $InstallDir
+    $RepoRoot = $InstallDir
+}
+
+Set-Location $RepoRoot
+Write-Host "Using repository root: $RepoRoot"
+
 # Install Rust if not present
 if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
     Write-Host "Installing Rust..."
@@ -37,11 +61,11 @@ npm install
 
 # Setup Python backend
 Write-Host "Setting up Python backend..."
-cd agent-backend
+Set-Location "$RepoRoot\agent-backend"
 python -m venv venv
-venv\Scripts\activate
+& "$RepoRoot\agent-backend\venv\Scripts\Activate.ps1"
 pip install -r requirements.txt
-cd ..
+Set-Location $RepoRoot
 
 # Start services
 Write-Host "Starting Ollama and Chroma..."
@@ -55,8 +79,8 @@ ollama pull moondream
 
 # Start backend
 Write-Host "Starting Python backend..."
-cd agent-backend
+Set-Location "$RepoRoot\agent-backend"
 Start-Process -FilePath "python" -ArgumentList "run.py" -NoNewWindow
-cd ..
+Set-Location $RepoRoot
 
 Write-Host "Setup complete! Run 'npm run tauri dev' to start the app."
