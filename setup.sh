@@ -45,6 +45,28 @@ fi
 
 echo "Detected OS: $OS"
 
+apt_update_retry() {
+    local attempts=0
+    local max_attempts=3
+    until sudo apt-get update -o Acquire::Retries=3; do
+        attempts=$((attempts + 1))
+        if [[ "$attempts" -ge "$max_attempts" ]]; then
+            echo "apt-get update failed after $attempts attempts."
+            echo "Please check your network or Ubuntu mirror settings and try again."
+            exit 1
+        fi
+        echo "Retrying apt-get update ($attempts/$max_attempts)..."
+        sudo rm -rf /var/lib/apt/lists/*
+        sleep 2
+    done
+}
+
+ensure_apt_update() {
+    if [[ "$OS" == "linux" ]]; then
+        apt_update_retry
+    fi
+}
+
 if ! command -v cargo &> /dev/null; then
     echo "Installing Rust..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -54,6 +76,7 @@ fi
 if ! command -v node &> /dev/null; then
     echo "Installing Node.js..."
     if [[ "$OS" == "linux" ]]; then
+        ensure_apt_update
         curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
         sudo apt-get install -y nodejs
     elif [[ "$OS" == "macos" ]]; then
@@ -65,9 +88,9 @@ if ! command -v node &> /dev/null; then
 fi
 
 if [[ "$OS" == "linux" ]]; then
+    ensure_apt_update
     if ! command -v pkg-config >/dev/null 2>&1 || ! pkg-config --exists glib-2.0 >/dev/null 2>&1; then
         echo "Installing Linux dependencies required for Tauri builds..."
-        sudo apt-get update
         sudo apt-get install -y pkg-config libglib2.0-dev libgtk-4-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev libsecret-1-dev build-essential
     fi
 fi
@@ -167,7 +190,7 @@ else
     if ! command -v docker >/dev/null 2>&1; then
         if [[ "$OS" == "linux" ]]; then
             echo "Installing Docker..."
-            sudo apt-get update
+            ensure_apt_update
             sudo apt-get install -y docker.io
             sudo systemctl enable --now docker || true
         else
@@ -179,7 +202,7 @@ else
     if ! docker compose version >/dev/null 2>&1; then
         if [[ "$OS" == "linux" ]]; then
             echo "Installing Docker Compose support..."
-            sudo apt-get update
+            ensure_apt_update
             if apt-cache show docker-compose-plugin >/dev/null 2>&1; then
                 sudo apt-get install -y docker-compose-plugin
             elif apt-cache show docker-compose >/dev/null 2>&1; then
