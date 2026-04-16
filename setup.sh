@@ -64,6 +64,14 @@ if ! command -v node &> /dev/null; then
     fi
 fi
 
+if [[ "$OS" == "linux" ]]; then
+    if ! command -v pkg-config >/dev/null 2>&1 || ! pkg-config --exists glib-2.0 >/dev/null 2>&1; then
+        echo "Installing Linux dependencies required for Tauri builds..."
+        sudo apt-get update
+        sudo apt-get install -y pkg-config libglib2.0-dev libgtk-4-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev libsecret-1-dev build-essential
+    fi
+fi
+
 if ! command -v ollama &> /dev/null; then
     echo "Installing Ollama..."
     if [[ "$OS" == "linux" ]]; then
