@@ -23,7 +23,7 @@ This will install all dependencies (Rust, Node.js, Python packages), start local
 
 ## Features
 
-- **Local AI**: Run Llama-3.2 3B and Moondream2 locally with Ollama
+- **Local AI**: Run Ollama models locally with dynamic model selection
 - **Agent Orchestration**: LangGraph multi-agent system
 - **Memory**: ChromaDB for RAG and long-term memory
 - **Computer Control**: PyAutoGUI for desktop automation
@@ -69,11 +69,21 @@ This will install all dependencies (Rust, Node.js, Python packages), start local
 
    ```bash
    docker-compose up -d
-   ollama pull llama3.2:3b
-   ollama pull moondream
    ```
 
 4. Run the app
+
+   ```bash
+   npm run tauri dev
+   ```
+
+### Model Selection
+
+During setup, the installer will detect system resources and recommend a model.
+You can choose `llama3.2:3b`, `moondream`, or enter a custom Ollama model tag.
+The selected model is saved to `.env` as `DESKFORGE_MODEL`.
+
+To change models later, update `.env` or set `DESKFORGE_MODEL` before starting the backend.
 
    ```bash
    npm run tauri dev

@@ -2,23 +2,17 @@
 
 Write-Host "Setting up DeskForge AI Desktop Agent on Windows..."
 
-# Check if running as admin
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "Please run as Administrator for some installations."
-    exit 1
-}
-
 $CurrentDir = Get-Location
 $RepoRoot = $null
-if (Test-Path "$CurrentDir\package.json") {
+if (Test-Path (Join-Path $CurrentDir "package.json")) {
     $RepoRoot = $CurrentDir
-} elseif (Test-Path "$CurrentDir\deskforge\package.json") {
+} elseif (Test-Path (Join-Path $CurrentDir "deskforge\package.json")) {
     $RepoRoot = Join-Path $CurrentDir "deskforge"
 }
 
 if (-not $RepoRoot) {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        Write-Host "Error: No DeskForge repository found in the current directory and git is not installed."
+        Write-Error "No DeskForge repository found and git is not installed."
         exit 1
     }
 
@@ -32,55 +26,116 @@ if (-not $RepoRoot) {
 Set-Location $RepoRoot
 Write-Host "Using repository root: $RepoRoot"
 
-# Install Rust if not present
 if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
     Write-Host "Installing Rust..."
-    Invoke-WebRequest -Uri "https://win.rustup.rs/x86_64" -OutFile "rustup-init.exe"
-    Start-Process -FilePath "rustup-init.exe" -ArgumentList "/quiet", "/no-modify-path" -Wait
-    Remove-Item "rustup-init.exe"
+    $rustInstaller = Join-Path $env:TEMP "rustup-init.exe"
+    Invoke-WebRequest -Uri "https://win.rustup.rs/x86_64" -OutFile $rustInstaller
+    Start-Process -FilePath $rustInstaller -ArgumentList "/quiet", "/no-modify-path" -Wait
+    Remove-Item $rustInstaller
     $env:Path += ";$env:USERPROFILE\.cargo\bin"
 }
 
-# Install Node.js if not present
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
     Write-Host "Installing Node.js..."
-    winget install OpenJS.NodeJS
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        winget install --id OpenJS.NodeJS -e --accept-package-agreements --accept-source-agreements
+    } else {
+        Write-Error "Node.js is required. Install it manually from https://nodejs.org/."
+        exit 1
+    }
 }
 
-# Install Ollama if not present
 if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
     Write-Host "Installing Ollama..."
-    Invoke-WebRequest -Uri "https://ollama.ai/download/OllamaSetup.exe" -OutFile "OllamaSetup.exe"
-    Start-Process -FilePath "OllamaSetup.exe" -ArgumentList "/S" -Wait
-    Remove-Item "OllamaSetup.exe"
+    $installer = Join-Path $env:TEMP "OllamaSetup.exe"
+    Invoke-WebRequest -Uri "https://ollama.ai/download/OllamaSetup.exe" -OutFile $installer
+    Start-Process -FilePath $installer -ArgumentList "/S" -Wait
+    Remove-Item $installer
 }
 
-# Install dependencies
 Write-Host "Installing frontend dependencies..."
-npm install
+if (Test-Path "$RepoRoot\node_modules") {
+    Write-Host "Frontend dependencies already installed."
+} else {
+    npm install
+}
 
-# Setup Python backend
 Write-Host "Setting up Python backend..."
 Set-Location "$RepoRoot\agent-backend"
-python -m venv venv
+if (-not (Test-Path "venv")) {
+    python -m venv venv
+}
 & "$RepoRoot\agent-backend\venv\Scripts\Activate.ps1"
+pip install --upgrade pip
 pip install -r requirements.txt
 Set-Location $RepoRoot
 
-# Start services
+$EnvFile = Join-Path $RepoRoot ".env"
+$ModelName = $null
+if (Test-Path $EnvFile) {
+    Get-Content $EnvFile | ForEach-Object {
+        if ($_ -match '^DESKFORGE_MODEL=(.+)$') { $ModelName = $Matches[1] }
+    }
+}
+
+if (-not $ModelName) {
+    Write-Host "Select an Ollama model to install:"
+    Write-Host "  1) llama3.2:3b"
+    Write-Host "  2) moondream"
+    Write-Host "  3) custom model"
+    $choice = Read-Host "Choice (default 1)"
+    switch ($choice) {
+        "2" { $ModelName = "moondream" }
+        "3" { $ModelName = Read-Host "Enter Ollama model tag" }
+        default { $ModelName = "llama3.2:3b" }
+    }
+    if (-not $ModelName) { $ModelName = "llama3.2:3b" }
+    "DESKFORGE_MODEL=$ModelName" | Set-Content $EnvFile
+    Write-Host "Selected model: $ModelName"
+} else {
+    Write-Host "Using existing model from .env: $ModelName"
+}
+
 Write-Host "Starting Ollama and Chroma..."
-docker-compose up -d
+if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+    Write-Error "Docker is required. Install Docker Desktop and retry."
+    exit 1
+}
 
-# Pull models
-Write-Host "Pulling Ollama models..."
-Start-Sleep -Seconds 5
-ollama pull llama3.2:3b
-ollama pull moondream
+$composeCommand = $null
+try {
+    docker compose version | Out-Null
+    $composeCommand = "docker compose"
+} catch {
+    if (Get-Command docker-compose -ErrorAction SilentlyContinue) {
+        $composeCommand = "docker-compose"
+    }
+}
 
-# Start backend
+if (-not $composeCommand) {
+    Write-Error "Docker Compose is not available. Ensure Docker Desktop is installed."
+    exit 1
+}
+
+& $composeCommand up -d
+
+Write-Host "Pulling Ollama model $ModelName..."
+try {
+    if (ollama list | Select-String -SimpleMatch $ModelName) {
+        Write-Host "Ollama model $ModelName already installed."
+    } else {
+        ollama pull $ModelName
+    }
+} catch {
+    ollama pull $ModelName
+}
+
 Write-Host "Starting Python backend..."
-Set-Location "$RepoRoot\agent-backend"
-Start-Process -FilePath "python" -ArgumentList "run.py" -NoNewWindow
-Set-Location $RepoRoot
+$running = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'run.py' }
+if ($running) {
+    Write-Host "Python backend appears to already be running."
+} else {
+    Start-Process -FilePath "$RepoRoot\agent-backend\venv\Scripts\python.exe" -ArgumentList "run.py" -WorkingDirectory "$RepoRoot\agent-backend" -NoNewWindow
+}
 
 Write-Host "Setup complete! Run 'npm run tauri dev' to start the app."

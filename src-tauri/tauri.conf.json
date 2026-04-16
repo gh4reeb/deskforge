@@ -1,24 +1,26 @@
 {
-  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "DeskForge",
   "version": "0.1.0",
   "identifier": "com.deskforge.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
-    "devPath": "http://localhost:5173",
-    "distDir": "../dist"
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "createUpdaterBundle": false,
+    "createUpdaterArtifacts": false,
     "category": "Productivity",
     "shortDescription": "AI Desktop Agent",
     "longDescription": "Local AI agent for desktop automation",
     "copyright": "",
-    "deb": {
-      "depends": []
+    "linux": {
+      "deb": {
+        "depends": []
+      }
     },
     "macOS": {
       "frameworks": [],
@@ -40,22 +42,15 @@
       }
     }
   },
-  "security": {
-    "csp": null
-  },
-  "shortcuts": [
-    {
-      "shortcut": "CmdOrCtrl+Shift+S",
-      "description": "Stop Agent"
-    }
-  ],
-  "windows": [
-    {
-      "title": "DeskForge",
-      "width": 800,
-      "height": 600,
-      "resizable": true,
-      "fullscreen": false
-    }
-  ]
+  "app": {
+    "windows": [
+      {
+        "title": "DeskForge",
+        "width": 800,
+        "height": 600,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ]
+  }
 }

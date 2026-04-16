@@ -3,9 +3,14 @@
 ## Setup
 
 1. Run `./setup.sh` for automated setup
+   - The installer will recommend a model based on available RAM
+   - It saves the chosen Ollama model to `.env` as `DESKFORGE_MODEL`
 2. Start services: `docker-compose up -d`
-3. Pull models: `ollama pull llama3.2:3b`
-4. Run app: `npm run tauri dev`
+3. Run app: `npm run tauri dev`
+
+### Change model later
+
+Update `.env` or export `DESKFORGE_MODEL` with a valid Ollama model tag before starting the backend.
 
 ## Adding Tools
 
